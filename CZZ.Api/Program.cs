@@ -1,52 +1,65 @@
-using Microsoft.AspNetCore.Builder;
-using System.Reflection.Metadata;
+using CZZ.Api.CZZRepostiory;
+using CZZ.Api.CZZService;
+using Serilog;
+using Serilog.Events;
 
-namespace CZZ.Api
+Log.Logger = new LoggerConfiguration()
+   .MinimumLevel.Information()
+   .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
+   .Enrich.FromLogContext()
+   .WriteTo.Console()
+   .WriteTo.File("logs/host-.txt", rollingInterval: RollingInterval.Hour)
+   .CreateLogger();
+
+try
 {
-    public class Program
+    var builder = WebApplication.CreateBuilder(args);
+
+    builder.Services.AddControllersWithViews();
+
+    builder.Services.AddScoped<ICZZServiceWrapper, CZZServiceWrapper>();
+    builder.Services.AddScoped<ICZZRepostioryWrapper, CZZRepostioryWrapper>();
+    builder.Services.AddScoped<IHouseObjectService, HouseObjectService>();
+    builder.Services.AddScoped<IHouseObjectRepostiory, HouseObjectRepostiory>();
+
+    builder.Services.AddSwaggerDocument(config =>
     {
-        public static void Main(string[] args)
+        config.PostProcess = document =>
         {
-            var builder = WebApplication.CreateBuilder(args);
+            document.Info.Version = "0.1";
+            document.Info.Title = "CZZ API";
+            document.Info.Description = "CZZ.API Testing";
+        };
+    });
 
-            // Add services to the container.
-            builder.Services.AddControllersWithViews();
+    Log.Information("Starting web host");
+    builder.Host.UseSerilog();
 
-            builder.Services.AddSwaggerDocument(config =>
-            {
-                config.PostProcess = document =>
-                {
-                    document.Info.Version = "0.1";
-                    document.Info.Title = "CZZ API";
-                    document.Info.Description = "CZZ.API Testing";
-                };
-            });
+    var app = builder.Build();
 
-            var app = builder.Build();
+    app.UseHttpsRedirection();
+    app.UseStaticFiles();
 
-            // Configure the HTTP request pipeline.
-            if (!app.Environment.IsDevelopment())
-            {
-                app.UseExceptionHandler("/Home/Error");
-                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-                app.UseHsts();
-            }
+    app.UseSerilogRequestLogging();
 
-            app.UseHttpsRedirection();
-            app.UseStaticFiles();
+    app.UseOpenApi();
+    app.UseSwaggerUi3();
 
-            app.UseOpenApi();
-            app.UseSwaggerUi3();
+    app.UseRouting();
 
-            app.UseRouting();
+    app.UseAuthorization();
 
-            app.UseAuthorization();
+    app.MapControllerRoute(
+        name: "default",
+        pattern: "{controller=Home}/{action=Index}/{id?}");
 
-            app.MapControllerRoute(
-                name: "default",
-                pattern: "{controller=Home}/{action=Index}/{id?}");
-
-            app.Run();
-        }
-    }
+    app.Run();
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "主機意外終止");
+}
+finally
+{
+    Log.CloseAndFlush();
 }
