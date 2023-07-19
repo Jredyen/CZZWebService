@@ -16,7 +16,14 @@ public class HouseObjectRepostiory : IHouseObjectRepostiory
 
         foreach (var file in files)
         {
-            result.Paths.Add(Path.GetFileNameWithoutExtension(file.Name));
+            //if (file.Name == Appsetting.JsonName)
+            //{
+            //    continue;
+            //}
+            //else
+            //{
+                result.Paths.Add(Path.GetFileNameWithoutExtension(file.Name));
+            //}
         }
 
         return result.Paths;

@@ -1,0 +1,54 @@
+﻿
+<div id="app">
+    @ViewBag.Date 的新物件
+    <table class="table">
+
+        <tbody>
+            <tr v-for="item in items" :key="item.post_id">
+                <td>{{item.post_id}}</td>
+                <td><a :href="web + item.post_id">{{item.title}}</a></td>
+                <td>{{item.area}} 坪</td>
+                <td>{{item.floor_str}}</td>
+                <td>{{item.price}} {{item.price_unit}}</td>
+                <td>{{item.location}}</td>
+                <td>{{item.role_name}}</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+@section Scripts
+    {
+    <script>
+        const apiUrl = "https://localhost:7224/CZZ/GetObject?Date=" + @ViewBag.Date;
+        const { createApp, ref } = Vue;
+
+        const app = Vue.createApp({
+            data() {
+                return {
+                    items: [],
+                    web: "https://rent.591.com.tw/home/"
+                };
+            },
+            methods: {
+                fetchData() {
+
+                    // 使用 axios 發送 GET 請求
+                    axios.get(apiUrl)
+                        .then((response) => {
+                            this.items = response.data.data.data; // 將資料存入 items 陣列
+                            console.log(response.data.data.data);
+                        })
+                        .catch((error) => {
+                            console.error("發生錯誤：", error);
+                        });
+                },
+            },
+            mounted() {
+                this.fetchData(); // 在 Vue 實例掛載後，呼叫 fetchData() 方法取得資料
+            },
+        });
+        // 掛載 Vue 3 實例到指定元素
+        app.mount("#app");
+    </script>
+}

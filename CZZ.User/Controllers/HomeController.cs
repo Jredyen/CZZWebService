@@ -1,5 +1,6 @@
 ﻿using CZZ.User.Models;
 using Microsoft.AspNetCore.Mvc;
+using System.Data;
 using System.Diagnostics;
 
 namespace CZZ.User.Controllers
@@ -18,15 +19,31 @@ namespace CZZ.User.Controllers
             return View();
         }
 
-        public IActionResult Privacy()
+        
+        //public IActionResult AllFiles()
+        //{
+        //    return View();
+        //}
+
+        [HttpGet]
+        public IActionResult AllFiles(string? id)
         {
+            if (id != null)
+            {
+                return RedirectToAction("ObjectList", "Home", id);
+            }
+            else
+            {
+                return View();
+            }
+        }
+
+        public IActionResult ObjectList(string? id)
+        {
+            ViewBag.Date = id;
             return View();
         }
 
-        public IActionResult Product()
-        {
-            return View();
-        }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()

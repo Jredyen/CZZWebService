@@ -3,6 +3,15 @@
 public class RootObject
 {
     public DataObject? Data { get; set; }
+    /// <summary>
+    /// 符合條件的資料比數 (一次只會給 30 筆)
+    /// </summary>
+    public string Records { get; set; }
+}
+
+public class SavePostId
+{
+    public List<int?> Post_id = new();
 }
 
 public class DataObject
