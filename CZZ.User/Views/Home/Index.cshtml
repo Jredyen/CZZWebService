@@ -1,8 +1,55 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "CZZ";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div id="app">
+    {{message}}
+    @*<table>
+        <thead>
+            <tr>
+                <td>檔名</td>
+            </tr>
+        </thead>
+        <tbody id="table">
+
+        </tbody>
+    </table>*@
 </div>
+
+@section Scripts
+{
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js" ></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.1.2/dist/axios.min.js"></script>
+
+    <script>
+        const url = "https://localhost:7224/CZZ/GetPath";
+        const { createApp } = Vue;
+        const app = createApp({
+            data() {
+                return {
+                    message:'hello vue'
+                }
+            }
+        })
+
+        app.mount('#app')
+    //const table = document.querySelector('#table');
+    //    getData();
+    //    async function getData(){
+    //    try{
+    //        const response = await axios.get(url);
+
+    //        response.data.slice(0,100).forEach(data => {
+
+    //            let tempHtml = '<tr>';
+    //            for (const key of Object.keys(data)) {
+    //                 tempHtml += `<td>${data[key]}</td>`;
+    //            }
+    //            tempHtml += '</tr>';
+    //            return table.innerHTML += tempHtml
+    //        })
+    //    }
+    //    catch (error) {
+    //    console.log(error)}}
+    </script>
+}

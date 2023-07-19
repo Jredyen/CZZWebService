@@ -35,7 +35,30 @@ try
     Log.Information("Starting web host");
     builder.Host.UseSerilog();
 
+    IWebHostEnvironment env = builder.Environment;
+
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy(name: "api",
+                          builder =>
+                          {
+                              if (env.IsDevelopment())
+                              {
+                                  builder.WithOrigins(new string[]{
+                                  "https://localhost:7225/"});
+                              }
+
+                              // allow all option
+                              builder.AllowAnyOrigin();
+                              builder.AllowAnyMethod();
+                              builder.AllowAnyHeader();
+
+                          });
+    });
+
     var app = builder.Build();
+
+    app.UseCors("api");
 
     app.UseHttpsRedirection();
     app.UseStaticFiles();

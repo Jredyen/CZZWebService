@@ -1,6 +1,41 @@
-﻿@{
-    ViewData["Title"] = "Privacy Policy";
-}
-<h1>@ViewData["Title"]</h1>
+﻿<div id="app">
+    <ul>
+        <li v-for="item in items" :key="item.id"><a :href="controller + item">{{item}}</a></li>
+    </ul>
+</div>
 
-<p>Use this page to detail your site's privacy policy.</p>
+@section Scripts
+    {
+    <script>
+    const apiUrl = "https://localhost:7224/CZZ/GetPath";
+    const { createApp, ref } = Vue;
+        
+    const app = Vue.createApp({
+      data() {
+        return {
+          items: [],
+          controller: "https://localhost:7224/CZZ/GetObject?Date="
+        };
+      },
+      methods: {
+        fetchData() {
+
+          // 使用 axios 發送 GET 請求
+          axios.get(apiUrl)
+            .then((response) => {
+              this.items = response.data; // 將資料存入 items 陣列
+              console.log(response.data);
+            })
+            .catch((error) => {
+              console.error("發生錯誤：", error);
+            });
+        },
+      },
+      mounted() {
+        this.fetchData(); // 在 Vue 實例掛載後，呼叫 fetchData() 方法取得資料
+      },
+    });
+    // 掛載 Vue 3 實例到指定元素
+    app.mount("#app");
+    </script>
+}

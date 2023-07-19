@@ -10,13 +10,13 @@ public class HouseObjectRepostiory : IHouseObjectRepostiory
 
         DirectoryInfo di = new(parentDirectory + "\\Files");
 
-        FileInfo[] files = di.GetFiles("", SearchOption.AllDirectories); //獲得該資料夾及其子資料夾內的所有資料
+        FileInfo[] files = di.GetFiles("*.json"); //獲得該資料夾及其子資料夾內的所有資料
 
         FilePathEntity result = new();
 
         foreach (var file in files)
         {
-            result.Paths.Add(file.Name.ToString());
+            result.Paths.Add(Path.GetFileNameWithoutExtension(file.Name));
         }
 
         return result.Paths;
