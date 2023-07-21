@@ -18,21 +18,33 @@
         };
       },
       methods: {
-        fetchData() {
+        //onMounted() {
 
-          // 使用 axios 發送 GET 請求
-          axios.get(apiUrl)
+
+        //    const response = axios.get(apiUrl).then((response) => response)
+        //        .catch((error) => error);
+        //    if (response) {
+        //        console.log(response)
+        //        this.items = response.data;
+        //    }
+        //    else {
+        //        console.log(error)
+        //    }
+        //},
+
+        fetchData() {
+            axios.get(apiUrl)
             .then((response) => {
-              this.items = response.data; // 將資料存入 items 陣列
-              console.log(response.data);
+            this.items = response.data;
+            console.log(response.data);
             })
             .catch((error) => {
-              console.error("發生錯誤：", error);
+            console.error("發生錯誤：", error);
             });
         },
       },
       mounted() {
-        this.fetchData(); // 在 Vue 實例掛載後，呼叫 fetchData() 方法取得資料
+        this.fetchData();
       },
     });
     // 掛載 Vue 3 實例到指定元素

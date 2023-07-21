@@ -1,10 +1,72 @@
-﻿
+﻿@section Scripts
+    {
+    <script type="module">
+        const apiUrl = "https://localhost:7224/CZZ/GetObject?Date=" + @ViewBag.Date;
+        //import { createApp, ref } from 'https://unpkg.com/vue@3/dist/vue.global.js'
+
+        const app = Vue.createApp({
+            data() {
+                return {
+                    items: [],
+                    web: "https://rent.591.com.tw/home/",
+                    queryString: '',
+                };
+            },
+            methods: {
+                fetchData() {
+                    axios.get(apiUrl)
+                        .then((response) => {
+                            this.items = response.data.data.data;
+                        })
+                        .catch((error) => {
+                            console.error("發生錯誤：", error);
+                        });
+                }
+            },
+            mounted() {
+                this.fetchData();
+            },
+            watch: {
+                filteredItems(){}
+            },
+            computed: {
+                filteredItems() {
+                    const searchText = this.queryString
+                    if (!searchText) {
+                        return this.items
+                    }else{
+                        return this.items.filter(t => {
+                            return t.title.indexOf(searchText) > -1 || t.location.indexOf(searchText) > -1;
+                        })
+                    }
+                }
+            }
+        });
+        app.mount("#app");
+
+
+    </script>
+}
+
 <div id="app">
     @ViewBag.Date 的新物件
+    <p>Search <input v-model="queryString" /></p>
     <table class="table">
-
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>標題</th>
+                <th>大小</th>
+                <th>樓層</th>
+                <th v-on:click="changeType('price')">
+                    租金
+                </th>
+                <th>地址</th>
+                <th>來源</th>
+            </tr>
+        </thead>
         <tbody>
-            <tr v-for="item in items" :key="item.post_id">
+            <tr v-for="item in filteredItems" :key="item.post_id">
                 <td>{{item.post_id}}</td>
                 <td><a :href="web + item.post_id">{{item.title}}</a></td>
                 <td>{{item.area}} 坪</td>
@@ -17,38 +79,19 @@
     </table>
 </div>
 
-@section Scripts
-    {
-    <script>
-        const apiUrl = "https://localhost:7224/CZZ/GetObject?Date=" + @ViewBag.Date;
-        const { createApp, ref } = Vue;
+<style>
+    .table th.click {
+    cursor: pointer;
+    }
 
-        const app = Vue.createApp({
-            data() {
-                return {
-                    items: [],
-                    web: "https://rent.591.com.tw/home/"
-                };
-            },
-            methods: {
-                fetchData() {
+    .table th.click {
+    cursor: pointer;
+    }
 
-                    // 使用 axios 發送 GET 請求
-                    axios.get(apiUrl)
-                        .then((response) => {
-                            this.items = response.data.data.data; // 將資料存入 items 陣列
-                            console.log(response.data.data.data);
-                        })
-                        .catch((error) => {
-                            console.error("發生錯誤：", error);
-                        });
-                },
-            },
-            mounted() {
-                this.fetchData(); // 在 Vue 實例掛載後，呼叫 fetchData() 方法取得資料
-            },
-        });
-        // 掛載 Vue 3 實例到指定元素
-        app.mount("#app");
-    </script>
-}
+    .icon {
+    display: inline-block;
+    }
+    .icon.inverse {
+    transform: rotate(180deg)
+    }
+</style>
