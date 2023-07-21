@@ -10,6 +10,9 @@
                     items: [],
                     web: "https://rent.591.com.tw/home/",
                     queryString: '',
+                    sortType: '',
+                    isReverse: false,
+                    error: ''
                 };
             },
             methods: {
@@ -19,26 +22,64 @@
                             this.items = response.data.data.data;
                         })
                         .catch((error) => {
-                            console.error("發生錯誤：", error);
+                            this.error = error;
                         });
+                },
+                changeType(type) {
+                    if (type == this.sortType) {
+                        this.isReverse = !this.isReverse
+                    }
+                    else
+                    {
+                        this.sortType = type
+                    }
                 }
             },
             mounted() {
                 this.fetchData();
             },
-            watch: {
-                filteredItems(){}
-            },
             computed: {
                 filteredItems() {
                     const searchText = this.queryString
-                    if (!searchText) {
+                    if (!searchText) 
+                    {
                         return this.items
-                    }else{
-                        return this.items.filter(t => {
+                    }
+                    else
+                    {
+                        return this.items.filter(t => 
+                        {
                             return t.title.indexOf(searchText) > -1 || t.location.indexOf(searchText) > -1;
                         })
                     }
+                },
+                sortItems() {
+                    const type = this.sortType
+                    const sortOrder = this.isReverse
+                    return this.items.sort((a, b) => {
+                        if (typeof(a[type]) === 'string')
+                        {
+                            if (this.isReverse) 
+                            {
+                                return (parseInt(b[type].replace(/,/g, ''))) - (parseInt(a[type].replace(/,/g, '')))
+                            }
+                            else 
+                            {
+                                return (parseInt(a[type].replace(/,/g, ''))) - (parseInt(b[type].replace(/,/g, '')))
+                            }
+                        }
+                        else
+                        {
+                            if (this.isReverse) 
+                            {
+                                return b[type] - a[type]
+                            } 
+                            else 
+                            {
+                                return a[type] - b[type]
+                            }
+                        }
+                    })
                 }
             }
         });
@@ -49,34 +90,48 @@
 }
 
 <div id="app">
-    @ViewBag.Date 的新物件
-    <p>Search <input v-model="queryString" /></p>
-    <table class="table">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>標題</th>
-                <th>大小</th>
-                <th>樓層</th>
-                <th v-on:click="changeType('price')">
-                    租金
-                </th>
-                <th>地址</th>
-                <th>來源</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr v-for="item in filteredItems" :key="item.post_id">
-                <td>{{item.post_id}}</td>
-                <td><a :href="web + item.post_id">{{item.title}}</a></td>
-                <td>{{item.area}} 坪</td>
-                <td>{{item.floor_str}}</td>
-                <td>{{item.price}} {{item.price_unit}}</td>
-                <td>{{item.location}}</td>
-                <td>{{item.role_name}}</td>
-            </tr>
-        </tbody>
-    </table>
+    <div v-if="!error">
+        <h2>@ViewBag.Date 的新物件</h2> @*@ViewBag: 雙刀流，要改掉*@
+        <p>Search <input v-model="queryString" /></p>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>標題</th>
+                    <th class="click" v-on:click="changeType('area')">
+                        大小
+                        <span class="icon" :class="{'inverse': isReverse}" v-if="sortType == 'area'">
+                            <i class="text-success">▲</i>
+                        </span>
+                    </th>
+                    <th>樓層</th>
+                    <th class="click" v-on:click="changeType('price')">
+                        租金
+                        <span class="icon" :class="{'inverse': isReverse}" v-if="sortType == 'price'">
+                            <i class="text-success">▲</i>
+                        </span>
+                    </th>
+                    <th>地址</th>
+                    <th>來源</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="item in filteredItems" :key="item.post_id">
+                    <td>{{item.post_id}}</td>
+                    <td><a :href="web + item.post_id">{{item.title}}</a></td>
+                    <td>{{item.area}} 坪</td>
+                    <td>{{item.floor_str}}</td>
+                    <td>{{item.price}} {{item.price_unit}}</td>
+                    <td>{{item.location}}</td>
+                    <td>{{item.role_name}}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <div v-else>
+        <h2 style="color:red">{{error.name}}</h2>
+        <p>{{error.message}}</p>
+    </div>
 </div>
 
 <style>
