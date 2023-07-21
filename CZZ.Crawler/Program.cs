@@ -71,7 +71,7 @@ internal class Program
                 Browse(item.Url, item.Desc, hader);
             }
 
-            ConsoleObject($"================== 5 分鐘後重新搜尋 ==================\r\n", ConsoleColor.White);
+            ConsoleObject($"================== 30 分鐘後重新搜尋 ==================\r\n", ConsoleColor.White);
 
             //若 Error.ErrorCount 有累計錯誤，將其歸零
             if (System591.ErrorCount > 0)
@@ -79,7 +79,7 @@ internal class Program
                 System591.ErrorCount = 0;
             }
 
-            Thread.Sleep(TimeSpan.FromMinutes(5));
+            Thread.Sleep(TimeSpan.FromMinutes(30));
 
             SearchStart();
         }
@@ -98,9 +98,9 @@ internal class Program
             //若 Error.ErrorCount 小於三次，等待 5 分鐘後重新執行，並累計連續錯誤次數 +1
             else
             {
-                ConsoleObject($"================== 爬蟲異常，5 分鐘後重新搜尋 ==================\r\n{ex.Message}\r\n", ConsoleColor.Red);
+                ConsoleObject($"================== 爬蟲異常，30 分鐘後重新搜尋 ==================\r\n{ex.Message}\r\n", ConsoleColor.Red);
 
-                Thread.Sleep(TimeSpan.FromMinutes(5));
+                Thread.Sleep(TimeSpan.FromMinutes(30));
 
                 System591.ErrorCount++;
 
