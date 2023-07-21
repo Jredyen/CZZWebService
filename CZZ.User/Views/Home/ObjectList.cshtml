@@ -1,7 +1,7 @@
 ﻿@section Scripts
     {
     <script type="module">
-        const apiUrl = "https://localhost:7224/CZZ/GetObject?Date=" + @ViewBag.Date;
+        const apiUrl = "https://localhost:7224/CZZ/GetObject?Date=" + '@ViewBag.Date';
         //import { createApp, ref } from 'https://unpkg.com/vue@3/dist/vue.global.js'
 
         const app = Vue.createApp({
@@ -29,57 +29,59 @@
                     if (type == this.sortType) {
                         this.isReverse = !this.isReverse
                     }
-                    else
-                    {
+                    else {
                         this.sortType = type
                     }
                 }
+            },
+            watch() {
+
             },
             mounted() {
                 this.fetchData();
             },
             computed: {
                 filteredItems() {
+                    // WHY?
+                    const cloned = JSON.parse(JSON.stringify(this.items));
+                    let temp = [...cloned]
+
                     const searchText = this.queryString
-                    if (!searchText) 
-                    {
-                        return this.items
-                    }
-                    else
-                    {
-                        return this.items.filter(t => 
-                        {
+                    if (searchText) {
+                        temp = [...cloned.filter(t => {
                             return t.title.indexOf(searchText) > -1 || t.location.indexOf(searchText) > -1;
+                        })]
+
+                        temp.forEach(item=> {
+                            item.location = item.location.replace(searchText, `<span style="color:red;font-weight:bold">${searchText}</span>`)
+                            item.title = item.title.replace(searchText, `<span style="color:red;font-weight:bold">${searchText}</span>`)
                         })
+
                     }
-                },
-                sortItems() {
+
                     const type = this.sortType
                     const sortOrder = this.isReverse
-                    return this.items.sort((a, b) => {
-                        if (typeof(a[type]) === 'string')
-                        {
-                            if (this.isReverse) 
-                            {
+                    temp.sort((a, b) => {
+                        if (typeof (a[type]) === 'string') {
+                            if (this.isReverse) {
                                 return (parseInt(b[type].replace(/,/g, ''))) - (parseInt(a[type].replace(/,/g, '')))
                             }
-                            else 
-                            {
+                            else {
                                 return (parseInt(a[type].replace(/,/g, ''))) - (parseInt(b[type].replace(/,/g, '')))
                             }
                         }
-                        else
-                        {
-                            if (this.isReverse) 
-                            {
+                        else {
+                            if (this.isReverse) {
                                 return b[type] - a[type]
-                            } 
-                            else 
-                            {
+                            }
+                            else {
                                 return a[type] - b[type]
                             }
                         }
                     })
+
+
+                    return temp;
                 }
             }
         });
@@ -118,35 +120,39 @@
             <tbody>
                 <tr v-for="item in filteredItems" :key="item.post_id">
                     <td>{{item.post_id}}</td>
-                    <td><a :href="web + item.post_id">{{item.title}}</a></td>
+                    <td><a :href="web + item.post_id" v-html="item.title"></a></td>
                     <td>{{item.area}} 坪</td>
                     <td>{{item.floor_str}}</td>
                     <td>{{item.price}} {{item.price_unit}}</td>
-                    <td>{{item.location}}</td>
+                    <td v-html="item.location"></td>
                     <td>{{item.role_name}}</td>
                 </tr>
             </tbody>
         </table>
     </div>
-    <div v-else>
+    <div v-else-if="error">
         <h2 style="color:red">{{error.name}}</h2>
         <p>{{error.message}}</p>
+    </div>
+    <div v-else>
+        <h1>No Data</h1>
     </div>
 </div>
 
 <style>
     .table th.click {
-    cursor: pointer;
+        cursor: pointer;
     }
 
     .table th.click {
-    cursor: pointer;
+        cursor: pointer;
     }
 
     .icon {
-    display: inline-block;
+        display: inline-block;
     }
-    .icon.inverse {
-    transform: rotate(180deg)
-    }
+
+        .icon.inverse {
+            transform: rotate(180deg)
+        }
 </style>
