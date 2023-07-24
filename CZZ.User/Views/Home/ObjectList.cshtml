@@ -43,10 +43,15 @@
             computed: {
                 filteredItems() {
                     // WHY?
+                    // 先將 items 序列化到 cloned
                     const cloned = JSON.parse(JSON.stringify(this.items));
+                    // 再使用展開運算符將 cloned 複製到 temp
+                    // temp 不使用同一個記憶體位置，所以不會影響到原本的 items
                     let temp = [...cloned]
-
                     const searchText = this.queryString
+                    const type = this.sortType
+                    const sortOrder = this.isReverse
+
                     if (searchText) {
                         temp = [...cloned.filter(t => {
                             return t.title.indexOf(searchText) > -1 || t.location.indexOf(searchText) > -1;
@@ -56,11 +61,8 @@
                             item.location = item.location.replace(searchText, `<span style="color:red;font-weight:bold">${searchText}</span>`)
                             item.title = item.title.replace(searchText, `<span style="color:red;font-weight:bold">${searchText}</span>`)
                         })
-
                     }
 
-                    const type = this.sortType
-                    const sortOrder = this.isReverse
                     temp.sort((a, b) => {
                         if (typeof (a[type]) === 'string') {
                             if (this.isReverse) {
@@ -79,8 +81,7 @@
                             }
                         }
                     })
-
-
+                    console.log(temp.length)
                     return temp;
                 }
             }
@@ -129,6 +130,13 @@
                 </tr>
             </tbody>
         </table>
+
+        @*<nav aria-label="Page navigation example">
+            <ul v-for="item in filteredItems.length" class="pagination">
+                <li class="page-item"><a class="page-link" href="#">1</a></li>
+            </ul>
+        </nav>*@
+
     </div>
     <div v-else-if="error">
         <h2 style="color:red">{{error.name}}</h2>
