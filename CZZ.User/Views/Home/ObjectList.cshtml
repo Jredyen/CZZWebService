@@ -44,7 +44,9 @@
                 filteredItems() {
                     // WHY?
                     // 先將 items 序列化到 cloned
+                    console.log(this.items)
                     const cloned = JSON.parse(JSON.stringify(this.items));
+
                     // 再使用展開運算符將 cloned 複製到 temp
                     // temp 不使用同一個記憶體位置，所以不會影響到原本的 items
                     let temp = [...cloned]

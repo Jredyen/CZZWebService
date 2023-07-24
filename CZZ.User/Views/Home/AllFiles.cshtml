@@ -1,53 +1,72 @@
 ﻿<div id="app">
-    <ul>
-        <li v-for="item in items" :key="item.id"><a :href="controller + item">{{item}}</a></li>
-    </ul>
+    <button v-on:click="switchMode">Switch Mode</button>
+
+    <div v-if="mode">
+        <ul>
+            <li v-for="item in objectItems" :key="item.id"><a :href="objectController + item">{{item}}</a></li>
+        </ul>
+    </div>
+   
+    <div v-else>
+        <input multiple type="file" v-on:change="fileChange">
+        <button v-on:click="upload">upload</button>
+
+        <div v-for ="item in nasPath" :key="item.id">
+            @*點名稱不會選取該選取框*@
+            <input type="checkbox" :id="item" v-model="checked">
+            <label :for="item">{{ item }}</label>
+        </div>
+    </div>
+    
 </div>
 
 @section Scripts
     {
     <script>
     const apiUrl = "https://localhost:7224/CZZ/GetPath";
+    const nasUrl = "https://localhost:7224/CZZ/GetNASPath";
     const { createApp, ref } = Vue;
         
     const app = Vue.createApp({
       data() {
         return {
-          items: [],
-          controller: "/Home/ObjectList/"
+          objectItems: [],
+          nasPath: [],
+          objectController: "/Home/ObjectList/",
+          nasController: "/Home/NAS/",
+          mode: true
         };
       },
       methods: {
-        //onMounted() {
-
-
-        //    const response = axios.get(apiUrl).then((response) => response)
-        //        .catch((error) => error);
-        //    if (response) {
-        //        console.log(response)
-        //        this.items = response.data;
-        //    }
-        //    else {
-        //        console.log(error)
-        //    }
-        //},
-
-        fetchData() {
+        fetchHouseData() {
             axios.get(apiUrl)
-            .then((response) => {
-            this.items = response.data;
-            console.log(response.data);
-            })
-            .catch((error) => {
-            console.error("發生錯誤：", error);
-            });
+                .then((response) => {
+                this.objectItems = response.data;
+                console.log(response.data);
+                })
+                .catch((error) => {
+                console.error("發生錯誤：", error);
+                });
         },
+        fetchNASPath() {
+            axios.get(nasUrl)
+                .then((response) => {
+                this.nasPath = response.data;
+                console.log(response.data);
+                })
+                .catch((error) => {
+                    console.error("發生錯誤：", error);
+                });
+        },
+        switchMode() {
+            this.mode = !this.mode;
+        }
       },
       mounted() {
-        this.fetchData();
+        this.fetchHouseData();
+        this.fetchNASPath();
       },
     });
-    // 掛載 Vue 3 實例到指定元素
     app.mount("#app");
     </script>
 }
