@@ -2,6 +2,8 @@
     {
     <script type="module">
 
+        import { createApp, ref, computed, watch, onMounted } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.js'
+
         const { Tooltip, Popover, Carousel } = bootstrap
 
         export const tooltip = {
@@ -27,68 +29,60 @@
        
         const apiUrl = "https://localhost:7224/CZZ/GetObject?Date=" + '@ViewBag.Date';
 
-        const app = Vue.createApp({
-            data() {
-                return {
-                    items: [],
-                    filteredCount: 0,
-                    web: "https://rent.591.com.tw/home/",
-                    queryString: '',
-                    sortType: '',
-                    isReverse: false,
-                    error: '',
-                    page: 0,
-                    filteredPage: 0,
-                    pageDataCount: 10
-                };
-            },
-            methods: {
-                fetchData() {
+        createApp({
+            setup() {
+                const items = ref([]);
+                const filteredCount = ref(0);
+                const web = 'https://rent.591.com.tw/home/';
+                const queryString = ref('');
+                const sortType = ref('');
+                const isReverse = ref(false);
+                const error = ref('');
+                const page = ref(0);
+                const filteredPage = ref(0);
+                const pageDataCount = ref(10);
+                const showMode = ref('card');
+                const rowCount = ref(2);
+
+                onMounted(async () => {
+                   await  fetchData();
+                })
+
+                async function fetchData() {
                     axios.get(apiUrl)
-                        .then((response) => {
-                            this.items = response.data.data.data;
-                        })
-                        .catch((error) => {
-                            this.error = error;
-                        });
-                },
-                changeType(type) {
-                    if (type == this.sortType) {
-                        this.isReverse = !this.isReverse
+                    .then((response) => {
+                        items.value = response.data.data.data;
+                    })
+                    .catch((error) => {
+                        error.value = error;
+                    })
+                }
+
+                function changeShowMode(mode) {
+                    showMode.value = mode
+                }
+
+                function changeType(type) {
+                    console.log(type)
+                    if (type == sortType.value) {
+                        isReverse.value = !isReverse.value
                     }
                     else {
-                        this.sortType = type
-                        this.isReverse = false
+                        sortType.value = type
+                        isReverse.value = false
                     }
                 }
-            },
-            watch: {
-                pageDataCount() {
-                    this.page = 0;
-                },
-                isReverse() {
-                    this.page = 0;
-                },
-                sortType() {
-                    console.log('sortType');
-                    this.page = 0;
-                },
-                queryString() {
-                    console.log('queryString');
-                    this.page = 0;
-                }
-            },
-            mounted() {
-                this.fetchData();
-            },
-            computed: {
-                filteredItems() {
-                    console.log('computed filteredItems');
-                    const cloned = JSON.parse(JSON.stringify(this.items));
+
+                watch([pageDataCount, isReverse, sortType, queryString],()=>{
+                    page.value = 0
+                })
+
+                const filteredItems = computed(() => {
+                    const cloned = JSON.parse(JSON.stringify(items.value));
                     let temp = [...cloned]
-                    const searchText = this.queryString
-                    const type = this.sortType
-                    const sortOrder = this.isReverse
+                    const searchText = queryString.value
+                    const type = sortType.value
+                    const sortOrder = isReverse.value
 
                     if (searchText) {
                         temp = [...cloned.filter(t => {
@@ -103,7 +97,7 @@
 
                     temp.sort((a, b) => {
                         if (typeof (a[type]) === 'string') {
-                            if (this.isReverse) {
+                            if (isReverse.value) {
                                 return (parseInt(b[type].replace(/,/g, ''))) - (parseInt(a[type].replace(/,/g, '')))
                             }
                             else {
@@ -111,7 +105,7 @@
                             }
                         }
                         else {
-                            if (this.isReverse) {
+                            if (isReverse.value) {
                                 return b[type] - a[type]
                             }
                             else {
@@ -120,35 +114,65 @@
                         }
                     })
 
-                    this.filteredPage = Math.ceil(temp.length / this.pageDataCount);
-                    this.filteredCount = temp.length;
-                    temp = temp.slice(this.page * this.pageDataCount, this.pageDataCount * this.page + this.pageDataCount)
+                    filteredPage.value = Math.ceil(temp.length / pageDataCount.value);
+                    filteredCount.value = temp.length;
+                    temp = temp.slice(page.value * pageDataCount.value, pageDataCount.value * page.value + pageDataCount.value)
                     return temp;
+                })
+
+                const returnColCss = computed(()=>({
+                    'row-cols-md-2': rowCount.value=== 2,
+                    'row-cols-md-3': rowCount.value=== 3,
+                    'row-cols-md-4': rowCount.value === 4,
+                }))
+
+                return {
+                    items,
+                    filteredCount,
+                    web,
+                    queryString,
+                    sortType,
+                    isReverse,
+                    error,
+                    page,
+                    filteredPage,
+                    pageDataCount,
+                    filteredItems,
+                    showMode,
+                    changeShowMode,
+                    changeType,
+                    rowCount,
+                    returnColCss
                 }
             }
-        });
-
-        app.directive('tooltip', tooltip)
-           .directive('popover', popover)
-           .directive('carousel', carousel)
-           .mount("#app");
+        }).directive('tooltip', tooltip)
+          .directive('popover', popover)
+          .directive('carousel', carousel)
+          .mount("#app");
 
     </script>
 }
 
 <div id="app">
     <div v-if="!error">
+
         <h2>@ViewBag.Date 的新物件</h2> @*@ViewBag: 雙刀流，要改掉*@
+
+        <nav class="nav nav-pills flex-column flex-sm-row">
+            <a class="flex-sm-fill text-sm-center nav-link" v-on:click="changeShowMode('list')" :class="{'active' : showMode === 'list'}" @*aria-current="page"*@ href="#">列表顯示</a>
+            <a class="flex-sm-fill text-sm-center nav-link" v-on:click="changeShowMode('card')" :class="{'active' : showMode === 'card'}" href="#">卡片顯示</a>
+        </nav>
+
         <p>Search <input v-model="queryString" /></p>
-        <div>總共 {{filteredCount}} 筆資料
-            <nav aria-label="Page navigation example">
-                <ul class="pagination">
-                    <li class="page-item" :class="{'active' : pageDataCount === 10}"><a v-on:click="pageDataCount = 10" class="page-link" tabindex="-1" aria-disabled="true">10</a></li>
-                    <li class="page-item" :class="{'active' : pageDataCount === 50, 'disabled' : filteredCount < 11}"><a v-on:click="pageDataCount = 50" class="page-link" tabindex="-1" aria-disabled="true">50</a></li>
-                    <li class="page-item" :class="{'active' : pageDataCount === 100, 'disabled' : filteredCount < 51}"><a v-on:click="pageDataCount = 100" class="page-link" tabindex="-1" aria-disabled="true">100</a></li>
-                </ul>
-            </nav>
-        </div>
+        <div>總共 {{filteredCount}} 筆資料</div>
+
+        <nav aria-label="Page navigation example">
+            <ul class="pagination">
+                <li class="page-item" :class="{'active' : pageDataCount === 10}"><a v-on:click="pageDataCount = 10" class="page-link" tabindex="-1" aria-disabled="true">10</a></li>
+                <li class="page-item" :class="{'active' : pageDataCount === 50, 'disabled' : filteredCount < 11}"><a v-on:click="pageDataCount = 50" class="page-link" tabindex="-1" aria-disabled="true">50</a></li>
+                <li class="page-item" :class="{'active' : pageDataCount === 100, 'disabled' : filteredCount < 51}"><a v-on:click="pageDataCount = 100" class="page-link" tabindex="-1" aria-disabled="true">100</a></li>
+            </ul>
+        </nav>
 
         <nav aria-label="Page navigation example">
             <ul class="pagination justify-content-center">
@@ -160,37 +184,98 @@
             </ul>
         </nav>
 
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>預覽</th>
-                    <th>標題</th>
-                    <th class="click" v-on:click="changeType('area')">
-                        大小
-                        <span class="icon" :class="{'inverse': isReverse}" v-if="sortType == 'area'">
-                            <i v-if="!isReverse" class="text-success">▲</i>
-                            <i v-else="!isReverse" class="text-danger">▲</i>
-                        </span>
-                    </th>
-                    <th>樓層</th>
-                    <th>類型</th>
-                    <th class="click" v-on:click="changeType('price')">
-                        租金
-                        <span class="icon" :class="{'inverse': isReverse}" v-if="sortType == 'price'">
-                            <i v-if="!isReverse" class="text-success">▲</i>
-                            <i v-else="!isReverse" class="text-danger">▲</i>
-                        </span>
-                    </th>
-                    <th>地址</th>
-                    <th>來源</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr v-for="(item,index) in filteredItems" :key="item.post_id">
-                    <td style="width: 20%">
+        <div v-if="showMode === 'list'">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>預覽</th>
+                        <th>標題</th>
+                        <th class="click" v-on:click="changeType('area')">
+                            大小
+                            <span class="icon" :class="{'inverse': isReverse}" v-if="sortType == 'area'">
+                                <i v-if="!isReverse" class="text-success">▲</i>
+                                <i v-else="!isReverse" class="text-danger">▲</i>
+                            </span>
+                        </th>
+                        <th>樓層</th>
+                        <th>類型</th>
+                        <th class="click" v-on:click="changeType('price')">
+                            租金
+                            <span class="icon" :class="{'inverse': isReverse}" v-if="sortType == 'price'">
+                                <i v-if="!isReverse" class="text-success">▲</i>
+                                <i v-else="!isReverse" class="text-danger">▲</i>
+                            </span>
+                        </th>
+                        <th>地址</th>
+                        <th>來源</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="(item,index) in filteredItems" :key="item.post_id">
+                        <td style="width: 20%">
+                            <div :id="'carousel'+index" data-bs-ride="carousel" class="carousel slide" v-carousel>
+                                <div class="carousel-indicators">
+                                    <template v-for="(img,index2) in item.photo_list" >
+                                        <button type="button" :data-bs-target="'#carousel'+index" :data-bs-slide-to="index2" :class="{'active':index2===0}" aria-current="true" :aria-label="'Slide '+index2"></button>
+                                    </template>
+                                </div>
+                                <div v-if="item.photo_list.length > 0">
+                                    <div class="carousel-inner">
+                                        <div v-for="(img,index2) in item.photo_list" class="carousel-item" :class="{'active':index2===0}">
+                                            <img :src="img" class="d-block img-fluid">
+                                        </div>
+                                    </div>
+                                    <button class="carousel-control-prev" type="button" :data-bs-target="'#carousel'+index" data-bs-slide="prev">
+                                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                        <span class="visually-hidden">Previous</span>
+                                    </button>
+                                    <button class="carousel-control-next" type="button" :data-bs-target="'#carousel'+index" data-bs-slide="next">
+                                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                        <span class="visually-hidden">Next</span>
+                                    </button>
+                                </div>
+                                <div v-else>
+                                    <img src="https://s.591.com.tw/build/static/house/rentDetail/images/no-img.png" class="d-block img-fluid">
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="d-inline-block" tabindex="0" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-content="Disabled popover">
+                                <a :href="web + item.post_id" v-html="item.title"></a>
+                            </span>
+                           </td>
+                        <td>{{item.area}} 坪</td>
+                        <td>{{item.floor_str}}</td>
+                        <td>{{item.kind_name}}</td>
+                        <td>{{item.price}} {{item.price_unit}}</td>
+                        <td v-html="item.location"></td>
+                        <td>{{item.role_name}}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <nav aria-label="Page navigation example">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item" :class="{'disabled':page === 0}"><a v-on:click="page = 0" class="page-link" href="#" tabindex="-1" aria-disabled="true">&laquo;</a></li>
+                    <li class="page-item" :class="{'disabled':page === 0}"><a v-on:click="page--" class="page-link" href="#" tabindex="-1" aria-disabled="true">&lt;</a></li>
+                    <li v-for="index in filteredPage" class="page-item" :class="{'active':page === index - 1}"><a v-on:click="page = index - 1" class="page-link" :name="index" href="#">{{index}}</a></li>
+                    <li class="page-item" :class="{'disabled':page === filteredPage - 1}"><a v-on:click="page++" class="page-link" href="#">&gt;</a></li>
+                    <li class="page-item" :class="{'disabled':page === filteredPage - 1}"><a v-on:click="page = filteredPage - 1" class="page-link" href="#">&raquo;</a></li>
+                </ul>
+            </nav>
+        </div>
+
+        <div v-else-if="showMode === 'card'">
+
+            <label for="customRange" class="form-label">每排顯示筆數</label>
+            <input type="range" class="form-range" min="2" max="4" v-model.number="rowCount" id="customRange">
+
+            <div class="row row-cols-1 g-4" :class="returnColCss">
+                <div v-for="(item,index) in filteredItems" class="col">
+                    <div class="card">
                         <div :id="'carousel'+index" data-bs-ride="carousel" class="carousel slide" v-carousel>
                             <div class="carousel-indicators">
-                                <template v-for="(img,index2) in item.photo_list" >
+                                <template v-for="(img,index2) in item.photo_list">
                                     <button type="button" :data-bs-target="'#carousel'+index" :data-bs-slide-to="index2" :class="{'active':index2===0}" aria-current="true" :aria-label="'Slide '+index2"></button>
                                 </template>
                             </div>
@@ -213,31 +298,18 @@
                                 <img src="https://s.591.com.tw/build/static/house/rentDetail/images/no-img.png" class="d-block img-fluid">
                             </div>
                         </div>
-                    </td>
-                    <td>
-                        <span class="d-inline-block" tabindex="0" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-content="Disabled popover">
-                            <a :href="web + item.post_id" v-html="item.title"></a>
-                        </span>
-                       </td>
-                    <td>{{item.area}} 坪</td>
-                    <td>{{item.floor_str}}</td>
-                    <td>{{item.kind_name}}</td>
-                    <td>{{item.price}} {{item.price_unit}}</td>
-                    <td v-html="item.location"></td>
-                    <td>{{item.role_name}}</td>
-                </tr>
-            </tbody>
-        </table>
 
-        <nav aria-label="Page navigation example">
-            <ul class="pagination justify-content-center">
-                <li class="page-item" :class="{'disabled':page === 0}"><a v-on:click="page = 0" class="page-link" href="#" tabindex="-1" aria-disabled="true">&laquo;</a></li>
-                <li class="page-item" :class="{'disabled':page === 0}"><a v-on:click="page--" class="page-link" href="#" tabindex="-1" aria-disabled="true">&lt;</a></li>
-                <li v-for="index in filteredPage" class="page-item" :class="{'active':page === index - 1}"><a v-on:click="page = index - 1" class="page-link" :name="index" href="#">{{index}}</a></li>
-                <li class="page-item" :class="{'disabled':page === filteredPage - 1}"><a v-on:click="page++" class="page-link" href="#">&gt;</a></li>
-                <li class="page-item" :class="{'disabled':page === filteredPage - 1}"><a v-on:click="page = filteredPage - 1" class="page-link" href="#">&raquo;</a></li>
-            </ul>
-        </nav>
+                        <div class="card-body d-flex flex-column align-items-center">
+                            <h5 v-html="item.title" class="card-title"></h5>
+                            <p>{{item.area}} 坪   {{item.price}} {{item.price_unit}}  {{item.role_name}}</p>
+                            <p>{{item.floor_str}}   {{item.kind_name}}   {{item.room_str}}</p>
+                            <p v-html="item.location"></p>
+                            <a :href="web + item.post_id" class="btn btn-primary">去看看</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div v-else-if="error">
