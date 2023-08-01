@@ -19,12 +19,6 @@ namespace CZZ.User.Controllers
             return View();
         }
 
-        
-        //public IActionResult AllFiles()
-        //{
-        //    return View();
-        //}
-
         [HttpGet]
         public IActionResult AllFiles(string? id)
         {
@@ -44,6 +38,10 @@ namespace CZZ.User.Controllers
             return View();
         }
 
+        public IActionResult ObjectSPAMode()
+        {
+            return View();
+        }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
