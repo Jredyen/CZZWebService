@@ -1,53 +1,52 @@
 ﻿<div id="app">
-    <ul>
-        <li v-for="item in items" :key="item.id"><a :href="controller + item">{{item}}</a></li>
+    <ul v-if="!error">
+        <li v-for="item in fItems" v-if="item != 'database'"><a :href="controller + item">{{item}}</a></li>
     </ul>
+    <div v-else>
+        {{error}}
+    </div>
 </div>
 
 @section Scripts
     {
-    <script>
+    <script type="module">
     const apiUrl = "https://localhost:7224/CZZ/GetPath";
-    const { createApp, ref } = Vue;
-        
-    const app = Vue.createApp({
-      data() {
-        return {
-          items: [],
-          controller: "/Home/ObjectList/"
-        };
-      },
-      methods: {
-        //onMounted() {
 
+    import { createApp, ref, computed, onMounted } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.js'
 
-        //    const response = axios.get(apiUrl).then((response) => response)
-        //        .catch((error) => error);
-        //    if (response) {
-        //        console.log(response)
-        //        this.items = response.data;
-        //    }
-        //    else {
-        //        console.log(error)
-        //    }
-        //},
+    createApp({
+        setup() {
+            const items = ref([]);
+            const error = ref('');
+            const controller = '/Home/ObjectList/';
 
-        fetchData() {
-            axios.get(apiUrl)
-            .then((response) => {
-            this.items = response.data;
-            console.log(response.data);
+            onMounted(async () => {
+                await fetchData();
             })
-            .catch((error) => {
-            console.error("發生錯誤：", error);
+
+            async function fetchData() {
+                axios.get(apiUrl)
+                    .then((response) => {
+                        items.value = response.data;
+                    })
+                    .catch((error) => {
+                        error.value = error;
+                    });
+            }
+
+            const fItems = computed(() => {
+                    const datas = [...items.value.filter(t => {
+                        return t !== 'database';
+                    })]
+                return datas
             });
-        },
-      },
-      mounted() {
-        this.fetchData();
-      },
-    });
-    // 掛載 Vue 3 實例到指定元素
-    app.mount("#app");
+
+            return {
+                fItems,
+                error,
+                controller
+            }
+        }
+    }).mount('#app');
     </script>
 }

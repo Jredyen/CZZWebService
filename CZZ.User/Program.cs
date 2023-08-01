@@ -21,6 +21,10 @@ namespace CZZ.User
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();
+            app.UseStaticFiles(new StaticFileOptions
+            {
+
+            });
 
             app.UseRouting();
 

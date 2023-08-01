@@ -3,6 +3,7 @@
     <script type="module">
 
         import { createApp, ref, computed, watch, onMounted } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.js'
+        import ObjectCard from '/vue-components/ObjectCard.js'
 
         const { Tooltip, Popover, Carousel } = bootstrap
 
@@ -30,6 +31,9 @@
         const apiUrl = "https://localhost:7224/CZZ/GetObject?Date=" + '@ViewBag.Date';
 
         createApp({
+            components: {
+                'object-card': ObjectCard
+            },
             setup() {
                 const items = ref([]);
                 const filteredCount = ref(0);
@@ -41,8 +45,8 @@
                 const page = ref(0);
                 const filteredPage = ref(0);
                 const pageDataCount = ref(10);
-                const showMode = ref('card');
-                const rowCount = ref(2);
+                const isCardMode = ref(false);
+                const rowCount = ref(3);
 
                 onMounted(async () => {
                    await  fetchData();
@@ -58,8 +62,8 @@
                     })
                 }
 
-                function changeShowMode(mode) {
-                    showMode.value = mode
+                function changeisCardMode() {
+                    isCardMode.value = !isCardMode.value
                 }
 
                 function changeType(type) {
@@ -121,8 +125,8 @@
                 })
 
                 const returnColCss = computed(()=>({
-                    'row-cols-md-2': rowCount.value=== 2,
-                    'row-cols-md-3': rowCount.value=== 3,
+                    'row-cols-md-2': rowCount.value === 2,
+                    'row-cols-md-3': rowCount.value === 3,
                     'row-cols-md-4': rowCount.value === 4,
                 }))
 
@@ -138,8 +142,8 @@
                     filteredPage,
                     pageDataCount,
                     filteredItems,
-                    showMode,
-                    changeShowMode,
+                    isCardMode,
+                    changeisCardMode,
                     changeType,
                     rowCount,
                     returnColCss
@@ -158,10 +162,10 @@
 
         <h2>@ViewBag.Date 的新物件</h2> @*@ViewBag: 雙刀流，要改掉*@
 
-        <nav class="nav nav-pills flex-column flex-sm-row">
-            <a class="flex-sm-fill text-sm-center nav-link" v-on:click="changeShowMode('list')" :class="{'active' : showMode === 'list'}" @*aria-current="page"*@ href="#">列表顯示</a>
-            <a class="flex-sm-fill text-sm-center nav-link" v-on:click="changeShowMode('card')" :class="{'active' : showMode === 'card'}" href="#">卡片顯示</a>
-        </nav>
+        <div class="form-check form-switch">
+            <input class="form-check-input" v-on:click="changeisCardMode()" type="checkbox" role="switch" id="flexSwitchCheckDefault">
+            <label class="form-check-label" for="flexSwitchCheckDefault">卡片模式</label>
+        </div>
 
         <p>Search <input v-model="queryString" /></p>
         <div>總共 {{filteredCount}} 筆資料</div>
@@ -184,7 +188,7 @@
             </ul>
         </nav>
 
-        <div v-if="showMode === 'list'">
+        <div v-if="!isCardMode">
             <table class="table">
                 <thead>
                     <tr>
@@ -241,7 +245,7 @@
                         </td>
                         <td>
                             <span class="d-inline-block" tabindex="0" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-content="Disabled popover">
-                                <a :href="web + item.post_id" v-html="item.title"></a>
+                                <a :href="web + item.post_id" target="_blank" v-html="item.title"></a>
                             </span>
                            </td>
                         <td>{{item.area}} 坪</td>
@@ -253,63 +257,27 @@
                     </tr>
                 </tbody>
             </table>
-
-            <nav aria-label="Page navigation example">
-                <ul class="pagination justify-content-center">
-                    <li class="page-item" :class="{'disabled':page === 0}"><a v-on:click="page = 0" class="page-link" href="#" tabindex="-1" aria-disabled="true">&laquo;</a></li>
-                    <li class="page-item" :class="{'disabled':page === 0}"><a v-on:click="page--" class="page-link" href="#" tabindex="-1" aria-disabled="true">&lt;</a></li>
-                    <li v-for="index in filteredPage" class="page-item" :class="{'active':page === index - 1}"><a v-on:click="page = index - 1" class="page-link" :name="index" href="#">{{index}}</a></li>
-                    <li class="page-item" :class="{'disabled':page === filteredPage - 1}"><a v-on:click="page++" class="page-link" href="#">&gt;</a></li>
-                    <li class="page-item" :class="{'disabled':page === filteredPage - 1}"><a v-on:click="page = filteredPage - 1" class="page-link" href="#">&raquo;</a></li>
-                </ul>
-            </nav>
         </div>
 
-        <div v-else-if="showMode === 'card'">
-
+        <div v-else-if="isCardMode">
             <label for="customRange" class="form-label">每排顯示筆數</label>
             <input type="range" class="form-range" min="2" max="4" v-model.number="rowCount" id="customRange">
 
             <div class="row row-cols-1 g-4" :class="returnColCss">
-                <div v-for="(item,index) in filteredItems" class="col">
-                    <div class="card">
-                        <div :id="'carousel'+index" data-bs-ride="carousel" class="carousel slide" v-carousel>
-                            <div class="carousel-indicators">
-                                <template v-for="(img,index2) in item.photo_list">
-                                    <button type="button" :data-bs-target="'#carousel'+index" :data-bs-slide-to="index2" :class="{'active':index2===0}" aria-current="true" :aria-label="'Slide '+index2"></button>
-                                </template>
-                            </div>
-                            <div v-if="item.photo_list.length > 0">
-                                <div class="carousel-inner">
-                                    <div v-for="(img,index2) in item.photo_list" class="carousel-item" :class="{'active':index2===0}">
-                                        <img :src="img" class="d-block img-fluid">
-                                    </div>
-                                </div>
-                                <button class="carousel-control-prev" type="button" :data-bs-target="'#carousel'+index" data-bs-slide="prev">
-                                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                                    <span class="visually-hidden">Previous</span>
-                                </button>
-                                <button class="carousel-control-next" type="button" :data-bs-target="'#carousel'+index" data-bs-slide="next">
-                                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                                    <span class="visually-hidden">Next</span>
-                                </button>
-                            </div>
-                            <div v-else>
-                                <img src="https://s.591.com.tw/build/static/house/rentDetail/images/no-img.png" class="d-block img-fluid">
-                            </div>
-                        </div>
-
-                        <div class="card-body d-flex flex-column align-items-center">
-                            <h5 v-html="item.title" class="card-title"></h5>
-                            <p>{{item.area}} 坪   {{item.price}} {{item.price_unit}}  {{item.role_name}}</p>
-                            <p>{{item.floor_str}}   {{item.kind_name}}   {{item.room_str}}</p>
-                            <p v-html="item.location"></p>
-                            <a :href="web + item.post_id" class="btn btn-primary">去看看</a>
-                        </div>
-                    </div>
-                </div>
+                <object-card v-for="(item,index) in filteredItems" :item="item" :index="index" :web="web"></object-card>
             </div>
         </div>
+
+        <nav aria-label="Page navigation example">
+            <ul class="pagination justify-content-center">
+                <li class="page-item" :class="{'disabled':page === 0}"><a v-on:click="page = 0" class="page-link" href="#" tabindex="-1" aria-disabled="true">&laquo;</a></li>
+                <li class="page-item" :class="{'disabled':page === 0}"><a v-on:click="page--" class="page-link" href="#" tabindex="-1" aria-disabled="true">&lt;</a></li>
+                <li v-for="index in filteredPage" class="page-item" :class="{'active':page === index - 1}"><a v-on:click="page = index - 1" class="page-link" :name="index" href="#">{{index}}</a></li>
+                <li class="page-item" :class="{'disabled':page === filteredPage - 1}"><a v-on:click="page++" class="page-link" href="#">&gt;</a></li>
+                <li class="page-item" :class="{'disabled':page === filteredPage - 1}"><a v-on:click="page = filteredPage - 1" class="page-link" href="#">&raquo;</a></li>
+            </ul>
+        </nav>
+
     </div>
 
     <div v-else-if="error">
