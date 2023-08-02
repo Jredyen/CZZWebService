@@ -25,4 +25,12 @@ public class CZZController : Controller
         var result = await _czzServiceWrapper.HouseObjectService.GetObjectByDate(Date);
         return Ok(result);
     }
+
+    [HttpGet]
+    public async Task<IActionResult> GetNASPath()
+    {
+        var result = await _czzServiceWrapper.NASService.GetAllFilesPath();
+
+        return Ok(result);
+    }
 }

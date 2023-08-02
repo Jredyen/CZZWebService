@@ -21,6 +21,8 @@ try
     builder.Services.AddScoped<ICZZRepostioryWrapper, CZZRepostioryWrapper>();
     builder.Services.AddScoped<IHouseObjectService, HouseObjectService>();
     builder.Services.AddScoped<IHouseObjectRepostiory, HouseObjectRepostiory>();
+    builder.Services.AddScoped<INASService, NASService>();
+    builder.Services.AddScoped<INASRepostiory, NASRepostiory>();
 
     builder.Services.AddSwaggerDocument(config =>
     {
