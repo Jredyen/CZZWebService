@@ -1,33 +1,60 @@
-﻿namespace CZZ.Api.CZZRepostiory;
+﻿using CZZ.Domain;
+
+namespace CZZ.Api.CZZRepostiory;
 
 public class NASRepostiory : INASRepostiory
 {
-    public async Task<List<object>> GetNASEntityAsync()
+    public async Task<List<string>> GetNASFilesEntityAsync(string? Folder)
     {
-        List<object> result = new();
-        List<string> folders = new();
-        List<string> files = new();
+        List<string> result = new();
+
+        string currentDirectory = Directory.GetCurrentDirectory();
+
+        string parentDirectory = Directory.GetParent(currentDirectory).FullName;
+
+        //取得檔案名稱
+        try
+        {
+            FileInfo[] fileInfo = new DirectoryInfo(@$"{parentDirectory}\NAS\{Folder}").GetFiles();
+            foreach (var file in fileInfo)
+            {
+                result.Add(Path.GetFileNameWithoutExtension(file.FullName) + Path.GetExtension(file.FullName));
+            }
+        }
+        catch (DirectoryNotFoundException)
+        {
+            result.Add("沒有找到資料夾");
+        }
+
+        return result;
+    }
+
+    public async Task<FolderPathEntity> GetNASFolderEntityAsync(string? Folder)
+    {
+        FolderPathEntity result = new()
+        {
+            Folders = new()
+        };
 
         string currentDirectory = Directory.GetCurrentDirectory();
 
         string parentDirectory = Directory.GetParent(currentDirectory).FullName;
 
         //取得資料夾名稱
-        string[] dirs = Directory.GetDirectories(parentDirectory + "\\NAS");
-        foreach (string dir in dirs)
+        try
         {
-            folders.Add(Path.GetFileName(dir));
-        }
+            result.FolderPaht = @$"{Folder}\";
 
-        //取得檔案名稱
-        FileInfo[] fileInfo = new DirectoryInfo(parentDirectory + "\\NAS").GetFiles();
-        foreach (var file in fileInfo)
+            string[] dirs = Directory.GetDirectories(@$"{parentDirectory}\NAS\{Folder}");
+            foreach (string dir in dirs)
+            {
+                result.Folders.Add(Path.GetFileName(dir));
+            }
+        }
+        catch (DirectoryNotFoundException)
         {
-            files.Add(Path.GetFileNameWithoutExtension(file.FullName));
+            result.Folders.Add("沒有找到資料夾");
         }
-
-        result.Add(folders);
-        result.Add(files);
 
         return result;
     }

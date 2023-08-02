@@ -363,3 +363,5 @@ MigrationBackup/
 FodyWeavers.xsd
 /Files/*
 /NAS
+/CZZ.User/wwwroot/vue-components/ObjectCard.js
+/CZZ.User/wwwroot/vue-components/ObjectList.js

@@ -27,9 +27,25 @@ public class CZZController : Controller
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetNASPath()
+    public async Task<IActionResult> GetNASFilesPath(string? Folder)
     {
-        var result = await _czzServiceWrapper.NASService.GetAllFilesPath();
+        var result = await _czzServiceWrapper.NASService.GetAllFilesPath(Folder);
+
+        return Ok(result);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetNASFolderPath(string? Folder)
+    {
+        var result = await _czzServiceWrapper.NASService.GetAllFolderPath(Folder);
+
+        return Ok(result);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetNASOpenFile(string? FilePath)
+    {
+        var result = await _czzServiceWrapper.NASService.GetAllFolderPath(FilePath);
 
         return Ok(result);
     }

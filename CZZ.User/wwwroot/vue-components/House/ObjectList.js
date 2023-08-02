@@ -1,166 +1,135 @@
-﻿@section Scripts
-    {
-    <script type="module">
+﻿import {ref, computed, watch, onMounted} from 'https://unpkg.com/vue@3/dist/vue.esm-browser.js'
+import ObjectCard from '/vue-components/House/ObjectCard.js'
 
-        import { createApp, ref, computed, watch, onMounted } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.js'
-        import ObjectCard from '/vue-components/ObjectCard.js'
+const apiUrl = "https://localhost:7224/CZZ/GetObject?Date=";
 
-        const { Tooltip, Popover, Carousel } = bootstrap
+export default {
+    props: {
+        date: String
+    },
+    components: {
+        'object-card': ObjectCard
+    },
+    setup(props) {
+        const items = ref([]);
+        const filteredCount = ref(0);
+        const web = 'https://rent.591.com.tw/home/';
+        const queryString = ref('');
+        const sortType = ref('');
+        const isReverse = ref(false);
+        const error = ref('');
+        const page = ref(0);
+        const filteredPage = ref(0);
+        const pageDataCount = ref(10);
+        const isCardMode = ref(false);
+        const rowCount = ref(3);
+        const date = computed(() => props.date)
 
-        export const tooltip = {
-            mounted(el) {
-                const tooltip = new Tooltip(el)
+        watch(date, () => {
+            fetchData();
+        })
+
+        function fetchData() {
+            axios.get(apiUrl + date.value)
+                .then((response) => {
+                    items.value = response.data.data.data;
+                })
+                .catch((error) => {
+                    error.value = error;
+                })
+        }
+
+        function changeisCardMode() {
+            isCardMode.value = !isCardMode.value
+        }
+
+        function changeType(type) {
+            console.log(type)
+            if (type == sortType.value) {
+                isReverse.value = !isReverse.value
+            }
+            else {
+                sortType.value = type
+                isReverse.value = false
             }
         }
 
-        export const popover = {
-            mounted(el) {
-                const popover = new Popover(el)
-            }
-        }
+        watch([pageDataCount, isReverse, sortType, queryString], () => {
+            page.value = 0
+        })
 
-        export const carousel = {
-            mounted(el) {   
-                const carousel = new Carousel(`#${el.id}`,{
-                    //interval: 2000, //輪播時間(毫秒)
-                    touch: false
+        const filteredItems = computed(() => {
+            const cloned = JSON.parse(JSON.stringify(items.value));
+            let temp = [...cloned]
+            const searchText = queryString.value
+            const type = sortType.value
+
+            if (searchText) {
+                temp = [...cloned.filter(t => {
+                    return t.title.indexOf(searchText) > -1 || t.location.indexOf(searchText) > -1;
+                })]
+
+                temp.forEach(item => {
+                    item.location = item.location.replace(searchText, `<span style="color:red;font-weight:bold">${searchText}</span>`)
+                    item.title = item.title.replace(searchText, `<span style="color:red;font-weight:bold">${searchText}</span>`)
                 })
             }
-        }
-       
-        const apiUrl = "https://localhost:7224/CZZ/GetObject?Date=" + '@ViewBag.Date';
 
-        createApp({
-            components: {
-                'object-card': ObjectCard
-            },
-            setup() {
-                const items = ref([]);
-                const filteredCount = ref(0);
-                const web = 'https://rent.591.com.tw/home/';
-                const queryString = ref('');
-                const sortType = ref('');
-                const isReverse = ref(false);
-                const error = ref('');
-                const page = ref(0);
-                const filteredPage = ref(0);
-                const pageDataCount = ref(10);
-                const isCardMode = ref(false);
-                const rowCount = ref(3);
-
-                onMounted(async () => {
-                   await  fetchData();
-                })
-
-                async function fetchData() {
-                    axios.get(apiUrl)
-                    .then((response) => {
-                        items.value = response.data.data.data;
-                    })
-                    .catch((error) => {
-                        error.value = error;
-                    })
-                }
-
-                function changeisCardMode() {
-                    isCardMode.value = !isCardMode.value
-                }
-
-                function changeType(type) {
-                    console.log(type)
-                    if (type == sortType.value) {
-                        isReverse.value = !isReverse.value
+            temp.sort((a, b) => {
+                if (typeof (a[type]) === 'string') {
+                    if (isReverse.value) {
+                        return (parseInt(b[type].replace(/,/g, ''))) - (parseInt(a[type].replace(/,/g, '')))
                     }
                     else {
-                        sortType.value = type
-                        isReverse.value = false
+                        return (parseInt(a[type].replace(/,/g, ''))) - (parseInt(b[type].replace(/,/g, '')))
                     }
                 }
-
-                watch([pageDataCount, isReverse, sortType, queryString],()=>{
-                    page.value = 0
-                })
-
-                const filteredItems = computed(() => {
-                    const cloned = JSON.parse(JSON.stringify(items.value));
-                    let temp = [...cloned]
-                    const searchText = queryString.value
-                    const type = sortType.value
-                    const sortOrder = isReverse.value
-
-                    if (searchText) {
-                        temp = [...cloned.filter(t => {
-                            return t.title.indexOf(searchText) > -1 || t.location.indexOf(searchText) > -1;
-                        })]
-
-                        temp.forEach(item=> {
-                            item.location = item.location.replace(searchText, `<span style="color:red;font-weight:bold">${searchText}</span>`)
-                            item.title = item.title.replace(searchText, `<span style="color:red;font-weight:bold">${searchText}</span>`)
-                        })
+                else {
+                    if (isReverse.value) {
+                        return b[type] - a[type]
                     }
-
-                    temp.sort((a, b) => {
-                        if (typeof (a[type]) === 'string') {
-                            if (isReverse.value) {
-                                return (parseInt(b[type].replace(/,/g, ''))) - (parseInt(a[type].replace(/,/g, '')))
-                            }
-                            else {
-                                return (parseInt(a[type].replace(/,/g, ''))) - (parseInt(b[type].replace(/,/g, '')))
-                            }
-                        }
-                        else {
-                            if (isReverse.value) {
-                                return b[type] - a[type]
-                            }
-                            else {
-                                return a[type] - b[type]
-                            }
-                        }
-                    })
-
-                    filteredPage.value = Math.ceil(temp.length / pageDataCount.value);
-                    filteredCount.value = temp.length;
-                    temp = temp.slice(page.value * pageDataCount.value, pageDataCount.value * page.value + pageDataCount.value)
-                    return temp;
-                })
-
-                const returnColCss = computed(()=>({
-                    'row-cols-md-2': rowCount.value === 2,
-                    'row-cols-md-3': rowCount.value === 3,
-                    'row-cols-md-4': rowCount.value === 4,
-                }))
-
-                return {
-                    items,
-                    filteredCount,
-                    web,
-                    queryString,
-                    sortType,
-                    isReverse,
-                    error,
-                    page,
-                    filteredPage,
-                    pageDataCount,
-                    filteredItems,
-                    isCardMode,
-                    changeisCardMode,
-                    changeType,
-                    rowCount,
-                    returnColCss
+                    else {
+                        return a[type] - b[type]
+                    }
                 }
-            }
-        }).directive('tooltip', tooltip)
-          .directive('popover', popover)
-          .directive('carousel', carousel)
-          .mount("#app");
+            })
 
-    </script>
-}
+            filteredPage.value = Math.ceil(temp.length / pageDataCount.value);
+            filteredCount.value = temp.length;
+            temp = temp.slice(page.value * pageDataCount.value, pageDataCount.value * page.value + pageDataCount.value)
+            return temp;
+        })
 
-<div id="app">
-    <div v-if="!error">
+        const returnColCss = computed(() => ({
+            'row-cols-md-2': rowCount.value === 2,
+            'row-cols-md-3': rowCount.value === 3,
+            'row-cols-md-4': rowCount.value === 4,
+        }))
 
-        <h2>@ViewBag.Date 的新物件</h2> @*@ViewBag: 雙刀流，要改掉*@
+        return {
+            items,
+            filteredCount,
+            web,
+            queryString,
+            sortType,
+            isReverse,
+            error,
+            page,
+            filteredPage,
+            pageDataCount,
+            filteredItems,
+            isCardMode,
+            changeisCardMode,
+            changeType,
+            rowCount,
+            returnColCss,
+            date
+        }
+    },
+    template: `
+<div v-if="!error">
+
+        <h2>{{date}} 的新物件</h2>
 
         <div class="form-check form-switch">
             <input class="form-check-input" v-on:click="changeisCardMode()" type="checkbox" role="switch" id="flexSwitchCheckDefault">
@@ -288,28 +257,5 @@
     <div v-else>
         <h1>No Data</h1>
     </div>
-</div>
-
-<style>
-    .table th.click {
-        cursor: pointer;
-    }
-
-    .table th.click {
-        cursor: pointer;
-    }
-
-    .icon {
-        display: inline-block;
-    }
-
-    .icon.inverse {
-        transform: rotate(180deg)
-    }
-
-    table tbody tr:hover {
-        cursor: pointer;
-         background-color: var(--green-100);
-    }
-
-</style>
+        `
+}

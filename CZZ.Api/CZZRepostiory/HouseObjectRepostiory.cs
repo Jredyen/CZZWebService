@@ -10,14 +10,14 @@ public class HouseObjectRepostiory : IHouseObjectRepostiory
 
         FileInfo[] files = new DirectoryInfo(parentDirectory + "\\Files").GetFiles("*.json");
 
-        FilePathEntity result = new();
+        List<string> result = new();
 
         foreach (var file in files)
         {
-                result.Paths.Add(Path.GetFileNameWithoutExtension(file.Name));
+                result.Add(Path.GetFileNameWithoutExtension(file.Name));
         }
 
-        return result.Paths;
+        return result;
     }
     public async Task<RootObject> GetDateObjectEntityAsync(string Date)
     {

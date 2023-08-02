@@ -1,55 +1,99 @@
-﻿@{
-    ViewData["Title"] = "CZZ";
-}
+﻿<div id="app">
+    <select class="form-select" aria-label="Default select example" v-model="selectedFunction">
+        <option value="Home">首頁</option>
+        <option value="House">租屋助手</option>
+        <option value="CloudDrive">雲端硬碟</option>
+    </select>
 
-<div id="app">
-    {{message}}
-    @*<table>
-        <thead>
-            <tr>
-                <td>檔名</td>
-            </tr>
-        </thead>
-        <tbody id="table">
-
-        </tbody>
-    </table>*@
+    <div v-if="selectedFunction === 'House'">
+        <ul>
+            <li v-for="item in fItems" v-on:click="date = item">{{item}}</li>
+        </ul>
+        <div>
+            <object-list :date="date"></object-list>
+        </div>
+    </div>
+    <div v-else-if="selectedFunction === 'CloudDrive'">
+        <cloud-drive></cloud-drive>
+    </div>
 </div>
 
 @section Scripts
-{
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js" ></script>
-    <script src="https://cdn.jsdelivr.net/npm/axios@1.1.2/dist/axios.min.js"></script>
+    {
+    <script type="module">
+        const ಠ_ಠ = 'ಠ_ಠ';
+        console.log(ಠ_ಠ);
 
-    <script>
-        const url = "https://localhost:7224/CZZ/GetPath";
-        const { createApp } = Vue;
-        const app = createApp({
-            data() {
+        import ObjectList from '/vue-components/House/ObjectList.js'
+        import CloudDrive from '/vue-components/NAS/CloudDrive.js'
+
+        const { Tooltip, Popover, Carousel } = bootstrap
+
+        export const tooltip = {
+            mounted(el) {
+                const tooltip = new Tooltip(el)
+            }
+        }
+
+        export const popover = {
+            mounted(el) {
+                const popover = new Popover(el)
+            }
+        }
+
+        export const carousel = {
+            mounted(el) {
+                const carousel = new Carousel(`#${el.id}`, {
+                    //interval: 2000, //輪播時間(毫秒)
+                    touch: false
+                })
+            }
+        }
+
+        const apiUrl = "https://localhost:7224/CZZ/GetPath";
+        const nasUrl = "https://localhost:7224/CZZ/GetNASPath";
+
+        import { createApp, ref, computed, onMounted } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.js'
+
+        createApp({
+            components: {
+                'object-list': ObjectList,
+                'cloud-drive': CloudDrive
+            },
+            setup() {
+                const items = ref([]);
+                const error = ref('');
+                const date = ref('');
+                const selectedFunction = ref('Home');
+
+                onMounted(async () => {
+                    await fetchData();
+                })
+
+                async function fetchData() {
+                    axios.get(apiUrl)
+                        .then((response) => {
+                            items.value = response.data;
+                        })
+                        .catch((error) => {
+                            error.value = error;
+                        });
+                }
+
+                const fItems = computed(() => {
+                    const datas = [...items.value.filter(t => {
+                        return t !== 'database';
+                    })]
+                    return datas
+                });
+
                 return {
-                    message:'hello vue'
+                    fItems,
+                    error,
+                    date,
+                    selectedFunction
                 }
             }
-        })
-
-        app.mount('#app')
-    //const table = document.querySelector('#table');
-    //    getData();
-    //    async function getData(){
-    //    try{
-    //        const response = await axios.get(url);
-
-    //        response.data.slice(0,100).forEach(data => {
-
-    //            let tempHtml = '<tr>';
-    //            for (const key of Object.keys(data)) {
-    //                 tempHtml += `<td>${data[key]}</td>`;
-    //            }
-    //            tempHtml += '</tr>';
-    //            return table.innerHTML += tempHtml
-    //        })
-    //    }
-    //    catch (error) {
-    //    console.log(error)}}
+        }).mount('#app');
     </script>
 }

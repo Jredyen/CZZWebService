@@ -2,5 +2,6 @@
 
 public interface INASRepostiory
 {
-    Task<List<object>> GetNASEntityAsync();
+    Task<List<string>> GetNASFilesEntityAsync(string? Folder);
+    Task<FolderPathEntity> GetNASFolderEntityAsync(string? Folder);
 }

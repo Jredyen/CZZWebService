@@ -9,9 +9,16 @@ public class NASService : INASService
         _czzWrapper = czzWrapper;
     }
 
-    public async Task<List<object>> GetAllFilesPath()
+    public async Task<List<string>> GetAllFilesPath(string? Folder)
     {
-        var result = await _czzWrapper.NASRepostiory.GetNASEntityAsync();
+        var result = await _czzWrapper.NASRepostiory.GetNASFilesEntityAsync(Folder);
+
+        return result;
+    }
+
+    public async Task<FolderPathEntity> GetAllFolderPath(string? Folder)
+    {
+        var result = await _czzWrapper.NASRepostiory.GetNASFolderEntityAsync(Folder);
 
         return result;
     }
