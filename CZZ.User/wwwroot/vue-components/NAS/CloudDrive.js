@@ -19,13 +19,24 @@ export default {
             axios.get(folderUrl + folder)
                 .then((response) => {
                     FoldersPath.value = response.data.folders;
-                    NowFolderPaths.value = response.data.folderPaht;
-                    console.log('NowFolderPaths: ',NowFolderPaths.value)
-                    NowFolderPath.value = [...JSON.parse(JSON.stringify(NowFolderPaths.value)).split("\\").filter(t => t != '')];
+                    NowFolderPath.value = response.data.folderPaht;
+
+                    const spiltNowFolderPath = [...JSON.parse(JSON.stringify(NowFolderPath.value)).split("\\").filter(t => t != '')];
+
+                    NowFolderPaths.value = [];
+
+                    for (let i = 0; i < spiltNowFolderPath.length; i++) {
+                        const url = spiltNowFolderPath.slice(0, i + 1).join("\\");
+                        NowFolderPaths.value.push({
+                            title: spiltNowFolderPath[i],
+                            url: url
+                        });
+                    }
                 })
                 .catch((error) => {
                     console.error("發生錯誤：", error);
                 });
+
             axios.get(filesUrl + folder)
                 .then((response) => {
                     FilesPath.value = response.data;
@@ -53,14 +64,15 @@ export default {
     `
     <nav aria-label="breadcrumb">
       <ol class="breadcrumb">
+        
         <li class="breadcrumb-item"><a href="#" v-on:click="SelectedFolder = ''">Cloud Drive</a></li>
-        <li class="breadcrumb-item" :name=SelectedFolder v-for="path in NowFolderPath"><a href="#" v-on:click="SelectedFolder = SelectedFolder">{{path}}</a></li>
+        <li class="breadcrumb-item" v-for="path in NowFolderPaths" ><a href="#" v-on:click="SelectedFolder = path.url">{{path.title}}</a></li>
       </ol>
     </nav>
 
 
     <div>
-        <p v-for="folder in FoldersPath"><a href="#" v-on:click="SelectedFolder = NowFolderPaths + folder">{{folder}}</a></p>
+        <p v-for="folder in FoldersPath"><a href="#" v-on:click="SelectedFolder = NowFolderPath + folder ">{{folder}}</a></p>
     </div>
 
     <div>
