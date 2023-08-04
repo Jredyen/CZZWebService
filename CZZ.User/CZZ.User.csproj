@@ -8,6 +8,15 @@
 
   <ItemGroup>
     <Content Remove="libman.json" />
+    <Content Remove="wwwroot\vue-components\NAS\PreviewFile.js" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <_ContentIncludedByDefault Remove="wwwroot\vue-components\NAS\PreviewFile.js" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="wwwroot\vue-components\NAS\PreviewFile.js" />
   </ItemGroup>
 
 </Project>

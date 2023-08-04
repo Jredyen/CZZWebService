@@ -43,10 +43,42 @@ public class CZZController : Controller
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetNASOpenFile(string? FilePath)
+    public async Task<IActionResult> GetNASOpenFile(string File)
     {
-        var result = await _czzServiceWrapper.NASService.GetAllFolderPath(FilePath);
+        string currentDirectory = Directory.GetCurrentDirectory();
 
-        return Ok(result);
+        string parentDirectory = Directory.GetParent(currentDirectory).FullName;
+
+        string fileExtension = Path.GetExtension(File);
+
+        string MIME;
+
+        switch (fileExtension.ToLower())
+        {
+            case ".jpg":
+            case ".jpeg":
+                MIME = "image/jpeg";
+                break;
+            case ".png":
+                MIME = "image/png";
+                break;
+            case ".pdf":
+                MIME = "application/pdf";
+                break;
+            case ".doc":
+                MIME = "application/msword";
+                break;
+            case ".docx":
+                MIME = "application/msword";
+                break;
+            case ".mp4":
+                MIME = "video/mp4";
+                break;
+            default:
+                MIME = "application/octet-stream";
+                break;
+        }
+
+        return PhysicalFile(parentDirectory + "\\" + File, MIME);
     }
 }

@@ -1,7 +1,10 @@
 ﻿import { ref, computed, watch, onMounted } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.js'
-
+import PreviewFile from '/vue-components/NAS/PreviewFile.js';
 
 export default {
+    components: {
+        'preview-file': PreviewFile
+    },
     setup() {
         const folderUrl = "https://localhost:7224/CZZ/GetNASFolderPath";
         const filesUrl = "https://localhost:7224/CZZ/GetNASFilesPath";
@@ -10,6 +13,7 @@ export default {
         const SelectedFolder = ref('');
         const NowFolderPaths = ref([]);
         const NowFolderPath = ref('');
+        const SelectedFile = ref('');
 
         onMounted(() => {
             fetchPath();
@@ -29,7 +33,7 @@ export default {
                         const url = spiltNowFolderPath.slice(0, i + 1).join("\\");
                         NowFolderPaths.value.push({
                             title: spiltNowFolderPath[i],
-                            url: url
+                            url: '\\' + url
                         });
                     }
                 })
@@ -47,9 +51,9 @@ export default {
         }
 
         watch(SelectedFolder, () => {
+            SelectedFile.value = '';
             fetchPath('?folder=' + SelectedFolder.value);
         })
-
 
         return {
             folderUrl,
@@ -57,7 +61,8 @@ export default {
             FilesPath,
             SelectedFolder,
             NowFolderPaths,
-            NowFolderPath
+            NowFolderPath,
+            SelectedFile
         }
     },
     template: 
@@ -72,11 +77,17 @@ export default {
 
 
     <div>
+        資料夾
         <p v-for="folder in FoldersPath"><a href="#" v-on:click="SelectedFolder = NowFolderPath + folder ">{{folder}}</a></p>
+    </div>
+    <hr>
+    <div>
+        檔案
+        <p v-for="file in FilesPath"><a href="#" v-on:click="SelectedFile = file" data-bs-toggle="modal" data-bs-target="#exampleModal">{{file}}</a></p>
     </div>
 
     <div>
-        <p v-for="file in FilesPath">{{file}}</p>
+        <preview-file :file="SelectedFile" :folder="NowFolderPath"></preview-file>
     </div>
     `
 }
