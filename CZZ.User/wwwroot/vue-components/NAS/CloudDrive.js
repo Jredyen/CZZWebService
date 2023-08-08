@@ -1,5 +1,5 @@
 ﻿import { ref, computed, watch, onMounted } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.js'
-import PreviewFile from '/vue-components/NAS/PreviewFile.js';
+import PreviewFile from '/vue-components/NAS/components/PreviewFile.js';
 
 export default {
     components: {

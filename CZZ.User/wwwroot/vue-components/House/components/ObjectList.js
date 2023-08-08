@@ -1,14 +1,19 @@
 ﻿import {ref, computed, watch, onMounted} from 'https://unpkg.com/vue@3/dist/vue.esm-browser.js'
-import ObjectCard from '/vue-components/House/ObjectCard.js'
+import ObjectCard from '/vue-components/House/components/ObjectCard.js'
+import KeywordSearch from '/vue-components/House/components/KeywordSearch.js'
 
 const apiUrl = "https://localhost:7224/CZZ/GetObject?Date=";
 
 export default {
-    props: {
-        date: String
-    },
+    props: ['date'],
     components: {
-        'object-card': ObjectCard
+        'object-card': ObjectCard,
+        'keyword-search': KeywordSearch
+    },
+    methods: {
+        goDateList() {
+            this.$emit('backToList')
+        }
     },
     setup(props) {
         const items = ref([]);
@@ -25,7 +30,7 @@ export default {
         const rowCount = ref(3);
         const date = computed(() => props.date)
 
-        watch(date, () => {
+        onMounted(() => {
             fetchData();
         })
 
@@ -128,6 +133,7 @@ export default {
     },
     template: `
 <div v-if="!error">
+        <button @click="goDateList" type="button" class="btn btn-primary">回列表</button>
 
         <h2>{{date}} 的新物件</h2>
 
@@ -136,6 +142,7 @@ export default {
             <label class="form-check-label" for="flexSwitchCheckDefault">卡片模式</label>
         </div>
 
+        <keyword-search :count=filteredCount @keyword="queryString = keyword"></keyword-search>
         <p>Search <input v-model="queryString" /></p>
         <div>總共 {{filteredCount}} 筆資料</div>
 
@@ -216,6 +223,9 @@ export default {
                             <span class="d-inline-block" tabindex="0" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-content="Disabled popover">
                                 <a :href="web + item.post_id" target="_blank" v-html="item.title"></a>
                             </span>
+                            <br>
+                            <span v-for="tag in item.rent_tag" class="badge rounded-pill bg-primary" >{{tag.name}}</span>
+                            
                            </td>
                         <td>{{item.area}} 坪</td>
                         <td>{{item.floor_str}}</td>
